@@ -47,3 +47,5 @@ couponbase*.gz
 # Temporary files
 tmp/
 temp/
+
+data/
