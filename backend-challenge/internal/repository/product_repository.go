@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"sort"
 	"sync"
 
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/models"
@@ -45,17 +46,21 @@ func NewInMemoryProductRepository() *InMemoryProductRepository {
 	}
 }
 
-// GetAll returns all products
+// GetAll returns all products sorted by ID for consistent ordering
 func (r *InMemoryProductRepository) GetAll(ctx context.Context) ([]models.Product, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	products := make([]models.Product, len(r.products))
-	i := 0
+	products := make([]models.Product, 0, len(r.products))
 	for _, product := range r.products {
-		products[i] = product
-		i++
+		products = append(products, product)
 	}
+
+	// Sort by ID for deterministic ordering
+	sort.Slice(products, func(i, j int) bool {
+		return products[i].ID < products[j].ID
+	})
+
 	return products, nil
 }
 
