@@ -48,15 +48,15 @@ func main() {
 		cfg.Coupon.File2URL,
 		cfg.Coupon.File3URL,
 	}
-	
+
 	ctx := context.Background()
 	if err := couponValidator.LoadFromURLs(ctx, couponURLs); err != nil {
 		log.Error("failed to load coupon data", "error", err)
 		os.Exit(1)
 	}
-	
+
 	stats := couponValidator.GetStats()
-	log.Info("coupon data loaded successfully", 
+	log.Info("coupon data loaded successfully",
 		"total_files", stats["total_files"],
 		"total_coupons", stats["total_coupons"],
 	)

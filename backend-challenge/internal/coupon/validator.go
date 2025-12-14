@@ -47,16 +47,16 @@ func (v *Validator) LoadFromURLs(ctx context.Context, urls []string) error {
 
 	// Create channels for results and errors
 	resultChan := make(chan fileLoadResult, len(urls))
-	
+
 	// Create a WaitGroup to track goroutines
 	var wg sync.WaitGroup
-	
+
 	// Launch a goroutine for each URL
 	for i, url := range urls {
 		wg.Add(1)
 		go func(index int, fileURL string) {
 			defer wg.Done()
-			
+
 			coupons, err := v.loadFromURL(ctx, fileURL)
 			resultChan <- fileLoadResult{
 				index:   index,
@@ -65,37 +65,37 @@ func (v *Validator) LoadFromURLs(ctx context.Context, urls []string) error {
 			}
 		}(i, url)
 	}
-	
+
 	// Close result channel when all goroutines complete
 	go func() {
 		wg.Wait()
 		close(resultChan)
 	}()
-	
+
 	// Collect results maintaining order
 	results := make([]fileLoadResult, len(urls))
 	for result := range resultChan {
 		results[result.index] = result
 	}
-	
+
 	// Check for errors
 	for i, result := range results {
 		if result.err != nil {
 			return fmt.Errorf("failed to load file %d: %w", i+1, result.err)
 		}
 	}
-	
+
 	// Store the loaded coupon sets
 	v.mu.Lock()
 	defer v.mu.Unlock()
-	
+
 	v.couponSets = make([]*couponSet, len(results))
 	for i, result := range results {
 		v.couponSets[i] = &couponSet{
 			coupons: result.coupons,
 		}
 	}
-	
+
 	return nil
 }
 
@@ -105,31 +105,31 @@ func (v *Validator) loadFromURL(ctx context.Context, url string) (map[string]boo
 	client := &http.Client{
 		Timeout: 5 * time.Minute, // Large files (~600MB) need more time
 	}
-	
+
 	// Create request with context
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	
+
 	// Execute request
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download file: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	
+
 	// Create gzip reader
 	gzReader, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gzip reader: %w", err)
 	}
 	defer gzReader.Close()
-	
+
 	// Parse coupons from the file
 	return parseCoupons(gzReader)
 }
@@ -138,18 +138,18 @@ func (v *Validator) loadFromURL(ctx context.Context, url string) (map[string]boo
 func parseCoupons(r io.Reader) (map[string]bool, error) {
 	coupons := make(map[string]bool)
 	scanner := bufio.NewScanner(r)
-	
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line != "" {
 			coupons[line] = true
 		}
 	}
-	
+
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("error reading file: %w", err)
 	}
-	
+
 	return coupons, nil
 }
 
@@ -162,40 +162,40 @@ func (v *Validator) IsValid(ctx context.Context, code string) bool {
 	if len(code) < 8 || len(code) > 10 {
 		return false
 	}
-	
+
 	v.mu.RLock()
 	defer v.mu.RUnlock()
-	
+
 	// If no coupon sets are loaded, the coupon is invalid
 	if len(v.couponSets) == 0 {
 		return false
 	}
-	
+
 	// Use channels for concurrent validation
 	foundChan := make(chan bool, len(v.couponSets))
-	
+
 	// Create context with cancellation for early termination
 	searchCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	
+
 	// Search concurrently in all coupon sets
 	var wg sync.WaitGroup
 	for _, cs := range v.couponSets {
 		wg.Add(1)
 		go func(couponSet *couponSet) {
 			defer wg.Done()
-			
+
 			// Check if context is cancelled
 			select {
 			case <-searchCtx.Done():
 				return
 			default:
 			}
-			
+
 			couponSet.mu.RLock()
 			found := couponSet.coupons[code]
 			couponSet.mu.RUnlock()
-			
+
 			if found {
 				select {
 				case foundChan <- true:
@@ -204,13 +204,13 @@ func (v *Validator) IsValid(ctx context.Context, code string) bool {
 			}
 		}(cs)
 	}
-	
+
 	// Close channel when all searches complete
 	go func() {
 		wg.Wait()
 		close(foundChan)
 	}()
-	
+
 	// Count how many files contain the coupon
 	count := 0
 	for range foundChan {
@@ -221,7 +221,7 @@ func (v *Validator) IsValid(ctx context.Context, code string) bool {
 			break
 		}
 	}
-	
+
 	return count >= 2
 }
 
@@ -229,24 +229,24 @@ func (v *Validator) IsValid(ctx context.Context, code string) bool {
 func (v *Validator) GetStats() map[string]interface{} {
 	v.mu.RLock()
 	defer v.mu.RUnlock()
-	
+
 	stats := make(map[string]interface{})
 	stats["total_files"] = len(v.couponSets)
-	
+
 	fileSizes := make([]int, len(v.couponSets))
 	totalCoupons := 0
-	
+
 	for i, cs := range v.couponSets {
 		cs.mu.RLock()
 		size := len(cs.coupons)
 		cs.mu.RUnlock()
-		
+
 		fileSizes[i] = size
 		totalCoupons += size
 	}
-	
+
 	stats["file_sizes"] = fileSizes
 	stats["total_coupons"] = totalCoupons
-	
+
 	return stats
 }

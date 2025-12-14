@@ -29,10 +29,10 @@ func NewCouponHandler(validator couponValidator) *CouponHandler {
 // Validates if the provided coupon code is valid according to the business rules
 func (h *CouponHandler) ValidateCoupon(w http.ResponseWriter, r *http.Request) {
 	couponCode := chi.URLParam(r, "couponCode")
-	
+
 	// Validate the coupon
 	isValid := h.validator.IsValid(r.Context(), couponCode)
-	
+
 	if isValid {
 		writeJSON(w, http.StatusOK, map[string]interface{}{
 			"valid":  true,
