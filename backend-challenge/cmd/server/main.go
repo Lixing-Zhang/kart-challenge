@@ -103,7 +103,7 @@ func main() {
 		r.Get("/product/{productId}", productHandler.GetProduct)
 
 		// Order endpoints
-		r.Post("/order", orderHandler.CreateOrder)
+		r.With(middleware.APIKeyAuth(cfg.Auth, "create_order")).Post("/order", orderHandler.CreateOrder)
 	})
 
 	// Create HTTP server
