@@ -16,9 +16,7 @@ type OrderItem struct {
 // Order represents a confirmed order
 // Schema matches OpenAPI specification
 type Order struct {
-	ID       string    `json:"id"`
+	ID       string      `json:"id"`
 	Items    []OrderItem `json:"items"`
-	Products []Product `json:"products"`
-	Total    float64   `json:"total,omitempty"`
-	Discount float64   `json:"discount,omitempty"`
+	Products []Product   `json:"products"`
 }

@@ -62,5 +62,5 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("order created successfully", "order_id", order.ID, "total", order.Total, "discount", order.Discount)
+	h.log.Info("order created successfully", "order_id", order.ID, "items_count", len(order.Items))
 }

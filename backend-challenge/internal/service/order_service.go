@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/models"
+	"github.com/google/uuid"
 )
 
 var (
@@ -69,23 +70,13 @@ func (s *OrderService) CreateOrder(ctx context.Context, req models.OrderRequest)
 		productMap[productID] = *product
 	}
 
-	// Calculate totals
-	subtotal := 0.0
-	for _, item := range req.Items {
-		productID, _ := strconv.ParseInt(item.ProductID, 10, 64)
-		product := productMap[productID]
-		subtotal += product.Price * float64(item.Quantity)
-	}
-
-	// Validate coupon and calculate discount
-	discount := 0.0
+	// Validate coupon if provided (just check validity, no discount calculation)
 	if req.CouponCode != "" && s.couponValidator != nil {
-		if s.couponValidator.IsValid(ctx, req.CouponCode) {
-			discount = s.calculateDiscount(req.CouponCode, subtotal, req.Items, productMap)
+		if !s.couponValidator.IsValid(ctx, req.CouponCode) {
+			// Invalid coupon - just ignore it, don't fail the order
+			req.CouponCode = ""
 		}
 	}
-
-	total := subtotal - discount
 
 	// Generate order ID (simple implementation - in production use UUID)
 	orderID := generateOrderID()
@@ -94,45 +85,12 @@ func (s *OrderService) CreateOrder(ctx context.Context, req models.OrderRequest)
 		ID:       orderID,
 		Items:    req.Items,
 		Products: products,
-		Total:    total,
-		Discount: discount,
 	}
 
 	return order, nil
 }
 
-// calculateDiscount calculates discount based on coupon code
-func (s *OrderService) calculateDiscount(couponCode string, subtotal float64, items []models.OrderItem, productMap map[int64]models.Product) float64 {
-	// Known coupon codes from requirements
-	switch couponCode {
-	case "HAPPYHOURS":
-		// 18% discount on order total
-		return subtotal * 0.18
-		
-	case "BUYGETONE":
-		// Give lowest priced item for free
-		minPrice := -1.0
-		for _, item := range items {
-			productID, _ := strconv.ParseInt(item.ProductID, 10, 64)
-			product := productMap[productID]
-			if minPrice < 0 || product.Price < minPrice {
-				minPrice = product.Price
-			}
-		}
-		if minPrice > 0 {
-			return minPrice
-		}
-		return 0.0
-		
-	default:
-		// Unknown coupon code - no discount
-		return 0.0
-	}
-}
-
-// generateOrderID generates a simple order ID
-// In production, use UUID or similar
+// generateOrderID generates a unique order ID using UUID
 func generateOrderID() string {
-	// Simple implementation - in production use uuid.New().String()
-	return "ORD-" + strconv.FormatInt(123456789, 10)
+	return uuid.New().String()
 }

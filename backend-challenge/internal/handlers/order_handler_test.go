@@ -42,9 +42,6 @@ func TestOrderHandler_CreateOrder(t *testing.T) {
 				if len(order.Items) != 1 {
 					t.Errorf("expected 1 item, got %d", len(order.Items))
 				}
-				if order.Total <= 0 {
-					t.Errorf("expected positive total, got %f", order.Total)
-				}
 			},
 		},
 		{

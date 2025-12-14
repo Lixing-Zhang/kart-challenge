@@ -66,7 +66,7 @@ func main() {
 
 	// Initialize services
 	productService := service.NewProductService(productRepo)
-	orderService := service.NewOrderService(productRepo, nil) // Coupon validator will be added later
+	orderService := service.NewOrderService(productRepo, couponValidator)
 
 	// Initialize handlers
 	healthHandler := handlers.NewHealthHandler(log)
