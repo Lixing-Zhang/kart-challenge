@@ -275,15 +275,15 @@ func TestValidator_LargeFile(t *testing.T) {
 	f3, _ := os.Create(file3)
 
 	// Add specific test coupons
-	f1.WriteString("FINDME01\n")
-	f2.WriteString("FINDME01\n")
-	f3.WriteString("NOTTHIS1\n")
+	_, _ = f1.WriteString("FINDME01\n")
+	_, _ = f2.WriteString("FINDME01\n")
+	_, _ = f3.WriteString("NOTTHIS1\n")
 
 	// Fill with random data
 	for i := 0; i < 9999; i++ {
-		f1.WriteString("AAAA0000\n")
-		f2.WriteString("BBBB1111\n")
-		f3.WriteString("CCCC2222\n")
+		_, _ = f1.WriteString("AAAA0000\n")
+		_, _ = f2.WriteString("BBBB1111\n")
+		_, _ = f3.WriteString("CCCC2222\n")
 	}
 
 	f1.Close()
