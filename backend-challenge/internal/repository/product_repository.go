@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/models"
 )
@@ -19,6 +20,7 @@ type ProductRepository interface {
 
 // InMemoryProductRepository implements ProductRepository with in-memory storage
 type InMemoryProductRepository struct {
+	mu       sync.RWMutex
 	products map[int64]models.Product
 }
 
@@ -45,6 +47,9 @@ func NewInMemoryProductRepository() *InMemoryProductRepository {
 
 // GetAll returns all products
 func (r *InMemoryProductRepository) GetAll(ctx context.Context) ([]models.Product, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	products := make([]models.Product, len(r.products))
 	i := 0
 	for _, product := range r.products {
@@ -56,6 +61,9 @@ func (r *InMemoryProductRepository) GetAll(ctx context.Context) ([]models.Produc
 
 // GetByID returns a product by its ID
 func (r *InMemoryProductRepository) GetByID(ctx context.Context, id int64) (*models.Product, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
 	product, exists := r.products[id]
 	if !exists {
 		return nil, ErrProductNotFound
