@@ -102,8 +102,8 @@ func main() {
 		r.Get("/product", productHandler.ListProducts)
 		r.Get("/product/{productId}", productHandler.GetProduct)
 
-		// Order endpoints
-		r.With(middleware.APIKeyAuth(cfg.Auth, "create_order")).Post("/order", orderHandler.CreateOrder)
+		// Order endpoints - requires API key authentication per OpenAPI spec
+		r.With(middleware.APIKeyAuth(cfg.Auth)).Post("/order", orderHandler.CreateOrder)
 	})
 
 	// Create HTTP server

@@ -30,7 +30,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	// Parse request body
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.log.Error("failed to decode order request", "error", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		WriteError(w, http.StatusBadRequest, "Invalid request body", h.log)
 		return
 	}
 
@@ -41,28 +41,20 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 
 		switch err {
 		case service.ErrEmptyOrder:
-			http.Error(w, "Order must contain at least one item", http.StatusBadRequest)
+			WriteError(w, http.StatusBadRequest, "Order must contain at least one item", h.log)
 		case service.ErrInvalidQuantity:
-			http.Error(w, "Quantity must be positive", http.StatusBadRequest)
+			WriteError(w, http.StatusBadRequest, "Quantity must be positive", h.log)
 		case service.ErrInvalidProduct:
-			http.Error(w, "Invalid product", http.StatusBadRequest)
+			WriteError(w, http.StatusBadRequest, "Invalid product", h.log)
 		case service.ErrInvalidCoupon:
-			http.Error(w, "Coupon code is not valid", http.StatusBadRequest)
+			WriteError(w, http.StatusBadRequest, "Coupon code is not valid", h.log)
 		default:
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			WriteError(w, http.StatusInternalServerError, "Internal server error", h.log)
 		}
 		return
 	}
 
 	// Return successful response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if err := json.NewEncoder(w).Encode(order); err != nil {
-		h.log.Error("failed to encode order response", "error", err)
-		// Cannot send error response - headers already written
-		return
-	}
-
+	WriteJSON(w, http.StatusOK, order, h.log)
 	h.log.Info("order created successfully", "order_id", order.ID, "items_count", len(order.Items))
 }

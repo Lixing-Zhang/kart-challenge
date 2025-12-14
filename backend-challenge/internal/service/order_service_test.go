@@ -110,9 +110,54 @@ func TestOrderService_CreateOrder(t *testing.T) {
 				t.Errorf("CreateOrder() items count = %d, want %d", len(order.Items), len(tt.req.Items))
 			}
 
-			if len(order.Products) != len(tt.req.Items) {
-				t.Errorf("CreateOrder() products count = %d, want %d", len(order.Products), len(tt.req.Items))
+			// Products should be deduplicated - count unique product IDs
+			uniqueProductIDs := make(map[string]bool)
+			for _, item := range tt.req.Items {
+				uniqueProductIDs[item.ProductID] = true
+			}
+			expectedProductCount := len(uniqueProductIDs)
+
+			if len(order.Products) != expectedProductCount {
+				t.Errorf("CreateOrder() products count = %d, want %d (deduplicated)", len(order.Products), expectedProductCount)
 			}
 		})
+	}
+}
+
+func TestOrderService_CreateOrder_DuplicateProducts(t *testing.T) {
+	productRepo := repository.NewInMemoryProductRepository()
+	orderService := NewOrderService(productRepo, nil)
+
+	// Order with duplicate product IDs
+	req := models.OrderRequest{
+		Items: []models.OrderItem{
+			{ProductID: "1", Quantity: 2},
+			{ProductID: "1", Quantity: 3},
+			{ProductID: "2", Quantity: 1},
+		},
+	}
+
+	order, err := orderService.CreateOrder(context.Background(), req)
+	if err != nil {
+		t.Fatalf("CreateOrder() unexpected error = %v", err)
+	}
+
+	// Should have 3 items
+	if len(order.Items) != 3 {
+		t.Errorf("items count = %d, want 3", len(order.Items))
+	}
+
+	// Should have 2 unique products (deduplicated)
+	if len(order.Products) != 2 {
+		t.Errorf("products count = %d, want 2 (deduplicated)", len(order.Products))
+	}
+
+	// Verify products are unique
+	productIDs := make(map[int64]bool)
+	for _, product := range order.Products {
+		if productIDs[product.ID] {
+			t.Errorf("duplicate product ID %d in products array", product.ID)
+		}
+		productIDs[product.ID] = true
 	}
 }

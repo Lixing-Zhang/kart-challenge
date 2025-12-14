@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -33,11 +32,11 @@ func (h *ProductHandler) ListProducts(w http.ResponseWriter, r *http.Request) {
 	products, err := h.service.ListProducts(ctx)
 	if err != nil {
 		h.logger.Error("failed to list products", "error", err)
-		h.writeError(w, http.StatusInternalServerError, "Internal server error")
+		WriteError(w, http.StatusInternalServerError, "Internal server error", h.logger)
 		return
 	}
 
-	h.writeJSON(w, http.StatusOK, products)
+	WriteJSON(w, http.StatusOK, products, h.logger)
 }
 
 // GetProduct handles GET /api/product/{productId}
@@ -52,7 +51,7 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	// Validate that productId is provided
 	if productID == "" {
 		h.logger.Warn("product ID is required")
-		h.writeError(w, http.StatusBadRequest, "Invalid ID supplied")
+		WriteError(w, http.StatusBadRequest, "Invalid ID supplied", h.logger)
 		return
 	}
 
@@ -60,49 +59,28 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	productIDInt, err := strconv.ParseInt(productID, 10, 64)
 	if err != nil {
 		h.logger.Warn("invalid product ID format", "productId", productID, "error", err)
-		h.writeError(w, http.StatusBadRequest, "Invalid ID supplied")
+		WriteError(w, http.StatusBadRequest, "Invalid ID supplied", h.logger)
 		return
 	}
 
 	// Validate that productId is positive
 	if productIDInt <= 0 {
 		h.logger.Warn("product ID must be positive", "productId", productIDInt)
-		h.writeError(w, http.StatusBadRequest, "Invalid ID supplied")
+		WriteError(w, http.StatusBadRequest, "Invalid ID supplied", h.logger)
 		return
 	}
 	product, err := h.service.GetProduct(ctx, productIDInt)
 	if err != nil {
 		if err == repository.ErrProductNotFound {
 			h.logger.Info("product not found", "productId", productID)
-			h.writeError(w, http.StatusNotFound, "Product not found")
+			WriteError(w, http.StatusNotFound, "Product not found", h.logger)
 			return
 		}
 
 		h.logger.Error("failed to get product", "productId", productID, "error", err)
-		h.writeError(w, http.StatusInternalServerError, "Internal server error")
+		WriteError(w, http.StatusInternalServerError, "Internal server error", h.logger)
 		return
 	}
 
-	h.writeJSON(w, http.StatusOK, product)
-}
-
-// writeJSON writes a JSON response
-func (h *ProductHandler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		h.logger.Error("failed to encode JSON response", "error", err)
-	}
-}
-
-// writeError writes an error response
-func (h *ProductHandler) writeError(w http.ResponseWriter, status int, message string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	response := map[string]string{"error": message}
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		h.logger.Error("failed to encode error response", "error", err)
-	}
+	WriteJSON(w, http.StatusOK, product, h.logger)
 }

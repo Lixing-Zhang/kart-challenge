@@ -48,8 +48,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, req models.OrderRequest)
 		return nil, ErrEmptyOrder
 	}
 
-	// Validate items and fetch products
-	products := make([]models.Product, 0, len(req.Items))
+	// Validate items and fetch products (deduplicated)
 	productMap := make(map[int64]models.Product)
 
 	for _, item := range req.Items {
@@ -62,13 +61,23 @@ func (s *OrderService) CreateOrder(ctx context.Context, req models.OrderRequest)
 			return nil, ErrInvalidProduct
 		}
 
+		// Skip if we've already fetched this product
+		if _, exists := productMap[productID]; exists {
+			continue
+		}
+
 		product, err := s.productRepo.GetByID(ctx, productID)
 		if err != nil {
 			return nil, ErrInvalidProduct
 		}
 
-		products = append(products, *product)
 		productMap[productID] = *product
+	}
+
+	// Convert map to slice for response
+	products := make([]models.Product, 0, len(productMap))
+	for _, product := range productMap {
+		products = append(products, product)
 	}
 
 	// Validate coupon if provided
