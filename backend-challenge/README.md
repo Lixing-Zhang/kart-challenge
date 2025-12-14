@@ -6,7 +6,7 @@ You can find our [API Documentation](https://orderfoodonline.deno.dev/public/ope
 API documentation is based on [OpenAPI3.1](https://swagger.io/specification/v3/) specification.
 You can also find spec file [here](https://orderfoodonline.deno.dev/public/openapi.yaml).
 
-> The API immplementation example available to you at orderfoodonline.deno.dev/api is simplified and doesn't handle some edge cases intentionally.
+> The API implementation example available to you at orderfoodonline.deno.dev/api is simplified and doesn't handle some edge cases intentionally.
 > Use your best judgement to build a Robust API server.
 
 ## Basic Requirements
