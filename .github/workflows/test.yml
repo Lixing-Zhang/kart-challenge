@@ -1,0 +1,94 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.4'
+        cache-dependency-path: backend-challenge/go.sum
+
+    - name: Install dependencies
+      working-directory: backend-challenge
+      run: go mod download
+
+    - name: Run unit tests
+      working-directory: backend-challenge
+      run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./backend-challenge/coverage.out
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  integration-test:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.4'
+        cache-dependency-path: backend-challenge/go.sum
+
+    - name: Install dependencies
+      working-directory: backend-challenge
+      run: go mod download
+
+    - name: Run integration tests with real S3 files
+      working-directory: backend-challenge
+      run: go test -v -timeout=15m -run TestValidator_RealS3Files ./internal/coupon/
+      continue-on-error: true
+
+    - name: Run integration tests sample
+      working-directory: backend-challenge
+      run: go test -v -timeout=15m -run TestValidator_RealS3Files_Sample ./internal/coupon/
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.4'
+        cache-dependency-path: backend-challenge/go.sum
+
+    - name: Install dependencies
+      working-directory: backend-challenge
+      run: go mod download
+
+    - name: Build server
+      working-directory: backend-challenge
+      run: go build -v -o bin/server ./cmd/server
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: server-binary
+        path: backend-challenge/bin/server
+        retention-days: 7
