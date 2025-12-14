@@ -38,7 +38,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	order, err := h.orderService.CreateOrder(r.Context(), req)
 	if err != nil {
 		h.log.Error("failed to create order", "error", err)
-		
+
 		switch err {
 		case service.ErrEmptyOrder:
 			http.Error(w, "Order must contain at least one item", http.StatusBadRequest)
@@ -57,10 +57,10 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	// Return successful response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	
+
 	if err := json.NewEncoder(w).Encode(order); err != nil {
 		h.log.Error("failed to encode order response", "error", err)
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		// Cannot send error response - headers already written
 		return
 	}
 

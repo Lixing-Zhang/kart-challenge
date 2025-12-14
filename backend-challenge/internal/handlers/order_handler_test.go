@@ -100,7 +100,7 @@ func TestOrderHandler_CreateOrder(t *testing.T) {
 			// Create request
 			var body []byte
 			var err error
-			
+
 			if str, ok := tt.requestBody.(string); ok {
 				body = []byte(str)
 			} else {

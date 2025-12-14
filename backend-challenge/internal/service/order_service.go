@@ -51,7 +51,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, req models.OrderRequest)
 	// Validate items and fetch products
 	products := make([]models.Product, 0, len(req.Items))
 	productMap := make(map[int64]models.Product)
-	
+
 	for _, item := range req.Items {
 		if item.Quantity <= 0 {
 			return nil, ErrInvalidQuantity
