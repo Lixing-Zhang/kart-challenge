@@ -25,6 +25,6 @@ func (s *ProductService) ListProducts(ctx context.Context) ([]models.Product, er
 }
 
 // GetProduct returns a product by ID
-func (s *ProductService) GetProduct(ctx context.Context, id string) (*models.Product, error) {
+func (s *ProductService) GetProduct(ctx context.Context, id int64) (*models.Product, error) {
 	return s.repo.GetByID(ctx, id)
 }
