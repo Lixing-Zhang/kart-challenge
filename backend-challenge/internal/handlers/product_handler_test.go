@@ -144,6 +144,8 @@ func TestGetProduct_InvalidID(t *testing.T) {
 		{"letters", "invalid"},
 		{"special chars", "abc@123"},
 		{"float", "12.34"},
+		{"negative", "-1"},
+		{"zero", "0"},
 	}
 
 	for _, tc := range testCases {
