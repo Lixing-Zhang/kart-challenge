@@ -78,7 +78,7 @@ func (s *OrderService) CreateOrder(ctx context.Context, req models.OrderRequest)
 		}
 	}
 
-	// Generate order ID (simple implementation - in production use UUID)
+	// Generate order ID using UUID
 	orderID := generateOrderID()
 
 	order := &models.Order{
