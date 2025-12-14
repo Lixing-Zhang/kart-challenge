@@ -44,6 +44,9 @@ Thumbs.db
 *.gz
 couponbase*.gz
 
+# Data directory (contains large coupon files)
+/data/
+
 # Temporary files
 tmp/
 temp/

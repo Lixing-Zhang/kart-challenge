@@ -41,24 +41,24 @@ func main() {
 	)
 
 	// Initialize coupon validator
-	log.Info("loading coupon data...")
+	log.Info("loading coupon file paths...")
 	couponValidator := coupon.NewValidator()
-	couponURLs := []string{
-		cfg.Coupon.File1URL,
-		cfg.Coupon.File2URL,
-		cfg.Coupon.File3URL,
+	couponFilePaths := []string{
+		fmt.Sprintf("%s/couponbase1", cfg.Coupon.DataDir),
+		fmt.Sprintf("%s/couponbase2", cfg.Coupon.DataDir),
+		fmt.Sprintf("%s/couponbase3", cfg.Coupon.DataDir),
 	}
 
 	ctx := context.Background()
-	if err := couponValidator.LoadFromURLs(ctx, couponURLs); err != nil {
-		log.Error("failed to load coupon data", "error", err)
+	if err := couponValidator.LoadFromFiles(ctx, couponFilePaths); err != nil {
+		log.Error("failed to load coupon file paths", "error", err)
 		os.Exit(1)
 	}
 
 	stats := couponValidator.GetStats()
-	log.Info("coupon data loaded successfully",
+	log.Info("coupon files configured successfully",
 		"total_files", stats["total_files"],
-		"total_coupons", stats["total_coupons"],
+		"file_paths", stats["file_paths"],
 	)
 
 	// Initialize repositories
@@ -70,7 +70,6 @@ func main() {
 	// Initialize handlers
 	healthHandler := handlers.NewHealthHandler(log)
 	productHandler := handlers.NewProductHandler(productService, log)
-	couponHandler := handlers.NewCouponHandler(couponValidator)
 
 	// Create router
 	r := chi.NewRouter()
@@ -100,10 +99,6 @@ func main() {
 		// Product endpoints
 		r.Get("/product", productHandler.ListProducts)
 		r.Get("/product/{productId}", productHandler.GetProduct)
-
-		// Coupon endpoints
-		r.Get("/coupon/{couponCode}", couponHandler.ValidateCoupon)
-		r.Get("/coupon/stats", couponHandler.GetStats)
 
 		// Order endpoints - to be implemented in next branch
 	})
