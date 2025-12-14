@@ -23,12 +23,16 @@ backend-challenge/
 │       └── main.go
 ├── internal/            # Private application code
 │   ├── config/          # Configuration management
+│   ├── coupon/          # Coupon validation with concurrent processing
 │   ├── handlers/        # HTTP request handlers
 │   ├── middleware/      # HTTP middleware
 │   ├── models/          # Domain models
-│   └── store/           # Data persistence layer
+│   ├── repository/      # Data persistence layer
+│   └── service/         # Business logic layer
 ├── pkg/                 # Public libraries
 │   └── logger/          # Structured logging
+├── docs/                # Documentation
+│   └── COUPON_VALIDATION.md  # Coupon feature documentation
 ├── .env.example         # Example environment variables
 ├── .gitignore          # Git ignore rules
 ├── go.mod              # Go module definition
@@ -118,6 +122,8 @@ All configuration is managed through environment variables following [12-factor 
 - `GET /health` - Health check endpoint
 
 For detailed API documentation, see the [OpenAPI specification](../api/openapi.yaml) or visit the [API docs](https://orderfoodonline.deno.dev/public/openapi.html).
+
+For detailed information about the coupon validation feature, see [COUPON_VALIDATION.md](docs/COUPON_VALIDATION.md).
 
 ## Development
 
