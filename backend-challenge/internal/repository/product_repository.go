@@ -45,11 +45,9 @@ func NewInMemoryProductRepository() *InMemoryProductRepository {
 
 // GetAll returns all products
 func (r *InMemoryProductRepository) GetAll(ctx context.Context) ([]models.Product, error) {
-	products := make([]models.Product, len(r.products))
-	i := 0
+	products := make([]models.Product, 0, len(r.products))
 	for _, product := range r.products {
-		products[i] = product
-		i++
+		products = append(products, product)
 	}
 	return products, nil
 }
