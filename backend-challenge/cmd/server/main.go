@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/config"
+	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/coupon"
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/handlers"
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/middleware"
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/repository"
@@ -37,6 +38,27 @@ func main() {
 		"port", cfg.Server.Port,
 		"host", cfg.Server.Host,
 		"log_level", cfg.LogLevel,
+	)
+
+	// Initialize coupon validator
+	log.Info("loading coupon file paths...")
+	couponValidator := coupon.NewValidator()
+	couponFilePaths := []string{
+		fmt.Sprintf("%s/couponbase1", cfg.Coupon.DataDir),
+		fmt.Sprintf("%s/couponbase2", cfg.Coupon.DataDir),
+		fmt.Sprintf("%s/couponbase3", cfg.Coupon.DataDir),
+	}
+
+	ctx := context.Background()
+	if err := couponValidator.LoadFromFiles(ctx, couponFilePaths); err != nil {
+		log.Error("failed to load coupon file paths", "error", err)
+		os.Exit(1)
+	}
+
+	stats := couponValidator.GetStats()
+	log.Info("coupon files configured successfully",
+		"total_files", stats["total_files"],
+		"file_paths", stats["file_paths"],
 	)
 
 	// Initialize repositories

@@ -187,10 +187,10 @@ func TestGetProduct_MultipleProducts(t *testing.T) {
 
 	// Test multiple product IDs
 	testCases := []struct {
-		id       string
+		id         string
 		expectedID int64
-		name     string
-		category string
+		name       string
+		category   string
 	}{
 		{"1", 1, "Chicken Waffle", "Waffle"},
 		{"4", 4, "Caesar Salad", "Salad"},

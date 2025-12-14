@@ -29,9 +29,7 @@ type AuthConfig struct {
 }
 
 type CouponConfig struct {
-	File1URL string
-	File2URL string
-	File3URL string
+	DataDir string // Directory containing coupon files
 }
 
 // Load reads configuration from environment variables
@@ -48,9 +46,7 @@ func Load() (*Config, error) {
 			APIKeys: getEnvAsSlice("API_KEYS", []string{"apitest"}),
 		},
 		Coupon: CouponConfig{
-			File1URL: getEnv("COUPON_FILE1_URL", "https://orderfoodonline-files.s3.ap-southeast-2.amazonaws.com/couponbase1.gz"),
-			File2URL: getEnv("COUPON_FILE2_URL", "https://orderfoodonline-files.s3.ap-southeast-2.amazonaws.com/couponbase2.gz"),
-			File3URL: getEnv("COUPON_FILE3_URL", "https://orderfoodonline-files.s3.ap-southeast-2.amazonaws.com/couponbase3.gz"),
+			DataDir: getEnv("COUPON_DATA_DIR", "data"),
 		},
 		LogLevel: getEnv("LOG_LEVEL", "info"),
 	}
