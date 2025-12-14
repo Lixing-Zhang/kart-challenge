@@ -46,6 +46,8 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Quantity must be positive", http.StatusBadRequest)
 		case service.ErrInvalidProduct:
 			http.Error(w, "Invalid product", http.StatusBadRequest)
+		case service.ErrInvalidCoupon:
+			http.Error(w, "Coupon code is not valid", http.StatusBadRequest)
 		default:
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 		}

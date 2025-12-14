@@ -13,6 +13,7 @@ var (
 	ErrInvalidProduct  = errors.New("invalid product")
 	ErrInvalidQuantity = errors.New("quantity must be positive")
 	ErrEmptyOrder      = errors.New("order must contain at least one item")
+	ErrInvalidCoupon   = errors.New("coupon code is not valid")
 )
 
 // CouponValidator interface for coupon validation
@@ -70,11 +71,10 @@ func (s *OrderService) CreateOrder(ctx context.Context, req models.OrderRequest)
 		productMap[productID] = *product
 	}
 
-	// Validate coupon if provided (just check validity, no discount calculation)
+	// Validate coupon if provided
 	if req.CouponCode != "" && s.couponValidator != nil {
 		if !s.couponValidator.IsValid(ctx, req.CouponCode) {
-			// Invalid coupon - just ignore it, don't fail the order
-			req.CouponCode = ""
+			return nil, ErrInvalidCoupon
 		}
 	}
 
