@@ -66,10 +66,12 @@ func main() {
 
 	// Initialize services
 	productService := service.NewProductService(productRepo)
+	orderService := service.NewOrderService(productRepo, couponValidator)
 
 	// Initialize handlers
 	healthHandler := handlers.NewHealthHandler(log)
 	productHandler := handlers.NewProductHandler(productService, log)
+	orderHandler := handlers.NewOrderHandler(orderService, log)
 
 	// Create router
 	r := chi.NewRouter()
@@ -100,7 +102,8 @@ func main() {
 		r.Get("/product", productHandler.ListProducts)
 		r.Get("/product/{productId}", productHandler.GetProduct)
 
-		// Order endpoints - to be implemented in next branch
+		// Order endpoints - requires API key authentication per OpenAPI spec
+		r.With(middleware.APIKeyAuth(cfg.Auth)).Post("/order", orderHandler.CreateOrder)
 	})
 
 	// Create HTTP server
