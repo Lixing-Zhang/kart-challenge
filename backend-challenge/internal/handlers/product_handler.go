@@ -56,14 +56,15 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate that productId is numeric (as per OpenAPI spec: type: integer, format: int64)
-	if _, err := strconv.ParseInt(productID, 10, 64); err != nil {
+	// Validate that productId is numeric and convert to int64
+	productIDInt, err := strconv.ParseInt(productID, 10, 64)
+	if err != nil {
 		h.logger.Warn("invalid product ID format", "productId", productID, "error", err)
 		h.writeError(w, http.StatusBadRequest, "Invalid ID supplied")
 		return
 	}
 
-	product, err := h.service.GetProduct(ctx, productID)
+	product, err := h.service.GetProduct(ctx, productIDInt)
 	if err != nil {
 		if err == repository.ErrProductNotFound {
 			h.logger.Info("product not found", "productId", productID)

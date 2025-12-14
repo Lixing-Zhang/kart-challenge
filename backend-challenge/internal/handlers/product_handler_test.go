@@ -75,8 +75,8 @@ func TestGetProduct_Success(t *testing.T) {
 		t.Fatalf("failed to decode response: %v", err)
 	}
 
-	if product.ID != "1" {
-		t.Errorf("expected product ID 1, got %s", product.ID)
+	if product.ID != 1 {
+		t.Errorf("expected product ID 1, got %d", product.ID)
 	}
 
 	if product.Name != "Chicken Waffle" {
@@ -186,13 +186,14 @@ func TestGetProduct_MultipleProducts(t *testing.T) {
 	// Test multiple product IDs
 	testCases := []struct {
 		id       string
+		expectedID int64
 		name     string
 		category string
 	}{
-		{"1", "Chicken Waffle", "Waffle"},
-		{"4", "Caesar Salad", "Salad"},
-		{"7", "Margherita Pizza", "Pizza"},
-		{"10", "Classic Burger", "Burger"},
+		{"1", 1, "Chicken Waffle", "Waffle"},
+		{"4", 4, "Caesar Salad", "Salad"},
+		{"7", 7, "Margherita Pizza", "Pizza"},
+		{"10", 10, "Classic Burger", "Burger"},
 	}
 
 	for _, tc := range testCases {
@@ -211,8 +212,8 @@ func TestGetProduct_MultipleProducts(t *testing.T) {
 				t.Fatalf("failed to decode response: %v", err)
 			}
 
-			if product.ID != tc.id {
-				t.Errorf("expected product ID %s, got %s", tc.id, product.ID)
+			if product.ID != tc.expectedID {
+				t.Errorf("expected product ID %d, got %d", tc.expectedID, product.ID)
 			}
 
 			if product.Name != tc.name {
