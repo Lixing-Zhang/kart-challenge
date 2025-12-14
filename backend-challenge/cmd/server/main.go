@@ -13,6 +13,8 @@ import (
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/config"
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/handlers"
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/middleware"
+	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/repository"
+	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/internal/service"
 	"github.com/Lixing-Zhang/kart-challenge/backend-challenge/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
@@ -37,6 +39,16 @@ func main() {
 		"log_level", cfg.LogLevel,
 	)
 
+	// Initialize repositories
+	productRepo := repository.NewInMemoryProductRepository()
+
+	// Initialize services
+	productService := service.NewProductService(productRepo)
+
+	// Initialize handlers
+	healthHandler := handlers.NewHealthHandler(log)
+	productHandler := handlers.NewProductHandler(productService, log)
+
 	// Create router
 	r := chi.NewRouter()
 
@@ -58,13 +70,15 @@ func main() {
 	}))
 
 	// Register health check endpoint
-	healthHandler := handlers.NewHealthHandler(log)
 	r.Get("/health", healthHandler.ServeHTTP)
 
-	// API routes will be added in subsequent branches
+	// API routes
 	r.Route("/api", func(r chi.Router) {
-		// Product endpoints - to be implemented
-		// Order endpoints - to be implemented
+		// Product endpoints
+		r.Get("/product", productHandler.ListProducts)
+		r.Get("/product/{productId}", productHandler.GetProduct)
+
+		// Order endpoints - to be implemented in next branch
 	})
 
 	// Create HTTP server
