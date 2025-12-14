@@ -18,7 +18,7 @@ You can also find spec file [here](https://orderfoodonline.deno.dev/public/opena
 
 ### Promo Code Validation
 
-You will find three big files containing random text in this repositotory.\
+You will find three big files containing random text in this repository.\
 A promo code is valid if the following rules apply:
 
 1. Must be a string of length between 8 and 10 characters
