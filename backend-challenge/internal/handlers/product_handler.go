@@ -64,6 +64,12 @@ func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate that productId is positive
+	if productIDInt <= 0 {
+		h.logger.Warn("product ID must be positive", "productId", productIDInt)
+		h.writeError(w, http.StatusBadRequest, "Invalid ID supplied")
+		return
+	}
 	product, err := h.service.GetProduct(ctx, productIDInt)
 	if err != nil {
 		if err == repository.ErrProductNotFound {
